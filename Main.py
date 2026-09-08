@@ -1,7 +1,7 @@
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-TOKEN='8893936599:AAGZ1ezzjPPym2GhoBh7nXMKQTmj6gcQcYI'
+TOKEN='8893936599:AAH6EVwJDOVbbCERjTbXVKX6jDcptGOrqi8'
 ADMIN_ID = 8609938129  # የራስህን የቴሌግራም User ID እዚህ አስገባ
 CHANNEL_ID =  -1003794082614  # የቻናልህ ትክክለኛ ቁጥር ID (በኔጌቲቭ ምልክት መጀመሩን አረጋግጥ)
 
