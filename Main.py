@@ -1,20 +1,17 @@
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-TOKEN = '8893936599:AAEjIqkOGYpTt5CPuHrQ_4CwnFUSzgFawbY'
+TOKEN = '8893936599:AAH6EVwJDOVbbCERjTbXVKX6jDcptGOrqi8'
 ADMIN_ID = 8609938129  # የአድሚን ቴሌግራም User ID
 CHANNEL_ID = -1003794082614  # የቻናልህ ትክክለኛ ቁጥር ID
 
 bot = telebot.TeleBot(TOKEN)
 
 user_languages = {}
-admin_pending_posts = {}
+admin_states = {}
 
 # የተጠቃሚዎችን መረጃ (User ID እና Name) በዲክሽነሪ መያዝ
 active_users = {}
-
-# አድሚኑ አሁን የትኛውን ትዕዛዝ እየፈፀመ እንደሆነ ለመያዝ (Add ወይስ Remove)
-admin_states = {}
 
 # የተከማቹ ፋይሎች ዝርዝር (ስዕለ ዓድኖን ጨምሮ)
 stored_files = {
@@ -55,7 +52,8 @@ def get_main_menu(user_id: int = 0):
                 InlineKeyboardButton("➖ ተጠቃሚ አስወግድ", callback_data="remove_user")
             )
             keyboard.add(
-                InlineKeyboardButton("👥 ተጠቃሚዎች ዝርዝር", callback_data="list_users")
+                InlineKeyboardButton("👥 ተጠቃሚዎች ዝርዝር", callback_data="list_users"),
+                InlineKeyboardButton("📢 ማስታወቂያ ላክ", callback_data="broadcast_menu")
             )
     else:
         keyboard.add(
@@ -81,7 +79,8 @@ def get_main_menu(user_id: int = 0):
                 InlineKeyboardButton("➖ Remove User", callback_data="remove_user")
             )
             keyboard.add(
-                InlineKeyboardButton("👥 Users List", callback_data="list_users")
+                InlineKeyboardButton("👥 Users List", callback_data="list_users"),
+                InlineKeyboardButton("📢 Send Broadcast", callback_data="broadcast_menu")
             )
         
     return keyboard
@@ -148,8 +147,8 @@ def handle_back_to_main(call):
     text = f"ሰላም ውድ {user_name}! እንኳን ወደ sedoo የፍቅር ቤተሰቦች ቦት በሰላም መጡ! 🙏✨\n\nከታች ካሉት ማራኪ አማራጮች የሚፈልጉትን ይምረጡ፦" if lang == "am" else f"Hello dear {user_name}! Welcome to sedoo's Family Bot! 🙏✨\n\nPlease choose an option:"
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text, reply_markup=get_main_menu(user_id))
 
-# ----------------- የአድሚን ተጠቃሚ አስተዳደር እና ዝርዝር -----------------
-@bot.callback_query_handler(func=lambda call: call.data in ['add_user', 'remove_user', 'list_users'])
+# ----------------- የአድሚን ተጠቃሚ አስተዳደር እና ማስታወቂያ (Broadcast) -----------------
+@bot.callback_query_handler(func=lambda call: call.data in ['add_user', 'remove_user', 'list_users', 'broadcast_menu'])
 def handle_user_management_buttons(call):
     if call.from_user.id != ADMIN_ID:
         bot.answer_callback_query(call.id, "⚠️ ይህ መብት ያለው ለአድሚን ብቻ ነው!")
@@ -172,7 +171,6 @@ def handle_user_management_buttons(call):
             bot.send_message(call.message.chat.id, "⚠️ እስካሁን የተመዘገበ ተጠቃሚ የለም።")
             return
         
-        # እያንዳንዱን ተጠቃሚ በቀጥታ ጠቅ በማድረግ (Click አድርጎ) ማጥፋት እንዲችል Inline ቁልፎችን እንፈጥራለን
         users_keyboard = InlineKeyboardMarkup(row_width=1)
         for uid, name in active_users.items():
             users_keyboard.add(
@@ -184,6 +182,14 @@ def handle_user_management_buttons(call):
             f"👥 **አጠቃላይ ተጠቃሚዎች ብዛት:** {total_count}\n\n👇 ከዚህ በታች ከሚገኙት ስሞች ውስጥ ማስወገድ (Delete ማድረግ) የሚፈልጉትን ይጫኑ፦", 
             reply_markup=users_keyboard, 
             parse_mode="Markdown"
+        )
+        
+    elif call.data == 'broadcast_menu':
+        admin_states[ADMIN_ID] = 'waiting_for_broadcast'
+        bot.answer_callback_query(call.id, "📢 ማስታወቂያ መላኪያ")
+        bot.send_message(
+            call.message.chat.id, 
+            "📢 **ለተጠቃሚዎች በሙሉ የሚተላለፍ ማስታወቂያ (ጽሑፍ፣ ፎቶ ወይም ቪዲዮ) አሁን ይላኩላቸው:**\n\n(ያስተላልፉ የሚለውን መልእክት በቀጥታ እዚህ ቻት ላይ ጻፉ ወይም ፎቶ ፕቴ አድርጉ)"
         )
 
 # አድሚኑ ከዝርዝሩ ውስጥ በአንድ ክሊክ (Click) ተጠቃሚን ሲያጠፋ
@@ -207,25 +213,48 @@ def handle_inline_delete_user(call):
     else:
         bot.answer_callback_query(call.id, "⚠️ ተጠቃሚው በዝርዝር ውስጥ አልተገኘም!")
 
-# አድሚኑ ቁጥር ብቻ ሲልክ (Add ወይም Remove)
-@bot.message_handler(func=lambda message: message.from_user.id == ADMIN_ID and message.text and message.text.isdigit())
-def process_admin_id_input(message):
+# አድሚኑ ቁጥር ብቻ ሲልክ (Add ወይም Remove) ወይም ማስታወቂያ ጽሁፍ/ሚዲያ ሲልክ
+@bot.message_handler(func=lambda message: message.from_user.id == ADMIN_ID, content_types=['text', 'photo', 'video', 'document', 'audio', 'voice'])
+def process_admin_inputs(message):
     state = admin_states.get(ADMIN_ID)
-    target_id = int(message.text)
     
-    if state == 'waiting_to_add':
+    # 1. ተጠቃሚ ለመጨመር ቁጥር ሲልክ
+    if state == 'waiting_to_add' and message.text and message.text.isdigit():
+        target_id = int(message.text)
         active_users[target_id] = "በአድሚን የተጨመረ"
         bot.reply_to(message, f"✅ ተጠቃሚ (ID: {target_id}) በተሳካ ሁኔታ ተጨመረ!")
         admin_states[ADMIN_ID] = None
-    elif state == 'waiting_to_remove':
+        return
+        
+    # 2. ተጠቃሚ ለማስወገድ ቁጥር ሲልክ
+    elif state == 'waiting_to_remove' and message.text and message.text.isdigit():
+        target_id = int(message.text)
         if target_id in active_users:
             del active_users[target_id]
             bot.reply_to(message, f"🗑️ ተጠቃሚ (ID: {target_id}) ከዝርዝሩ ውጪ ሆኗል (Rejected)!")
         else:
             bot.reply_to(message, f"⚠️ ተጠቃሚ (ID: {target_id}) በዝርዝር ውስጥ አልተገኘምም።")
         admin_states[ADMIN_ID] = None
-    else:
-        bot.reply_to(message, "እባክዎ መጀመሪያ ከምናሌው '➕ ተጠቃሚ ጨምር' ወይም '➖ ተጠቃሚ አስወግድ' የሚለውን ይጫኑ።")
+        return
+        
+    # 3. ማስታወቂያ (Broadcast) በጅምላ ለመላክ ሲልክ
+    elif state == 'waiting_for_broadcast':
+        success, fail = 0, 0
+        bot.reply_to(message, "⏳ ማስታወቂያው ለተጠቃሚዎች በመላክ ላይ ነው፣ እባክዎ ትንሽ ይጠብቁ...")
+        
+        for uid in active_users.keys():
+            if uid == ADMIN_ID:
+                continue
+            try:
+                bot.copy_message(chat_id=uid, from_chat_id=message.chat.id, message_id=message.message_id)
+                success += 1
+            except Exception as e:
+                print(f"ለ {uid} መላክ አልቻለም: {e}")
+                fail += 1
+                
+        bot.send_message(ADMIN_ID, f"✅ **ማስታወቂያው በተሳካ ሁኔታ ተጠናቋል!**\n\n• የደረሰላቸው: {success}\n• ያልደረሰባቸው: {fail}")
+        admin_states[ADMIN_ID] = None
+        return
 
 # ----------------- ቻናል ላይ ፖስት ሲደረግ -----------------
 @bot.channel_post_handler(content_types=['document', 'audio', 'video', 'photo', 'text', 'voice'])
