@@ -57,18 +57,20 @@ def get_main_menu(user_id: int = 0):
         keyboard.add(
             InlineKeyboardButton("🖼️ ስዕለ ዓድኖ", callback_data="view_art")
         )
-        # ✉️ ጥያቄና አስተያየት እና ለማንኛውም ጥያቄ ሁለቱም እንደ መልእክት መላኪያ (Callback) ተደረጉ
         keyboard.add(
-            InlineKeyboardButton("✍️ ለማንኛውም ጥያቄ", callback_data="feedback_prompt"),
+            InlineKeyboardButton("💬 ለማንኛውም ጥያቄ", callback_data="feedback_prompt"),
             InlineKeyboardButton("✍️ ጥያቄና አስተያየት", callback_data="feedback_prompt")
+        )
+        keyboard.add(
+            InlineKeyboardButton("👥 ለግሩፕ አስተያየት መስጠት", callback_data="group_feedback")
         )
         keyboard.add(
             InlineKeyboardButton("⚙️ ቋንቋ", callback_data="settings_lang")
         )
         if is_admin:
+            # "ተጠቃሚ አስወግድ" የሚለው ቁልፍ ሙሉ በሙሉ ጠፍቷል
             keyboard.add(
-                InlineKeyboardButton("➕ ተጠቃሚ ጨምር", callback_data="add_user"),
-                InlineKeyboardButton("➖ ተጠቃሚ አስወግድ", callback_data="remove_user")
+                InlineKeyboardButton("➕ ተጠቃሚ ጨምር", callback_data="add_user")
             )
             keyboard.add(
                 InlineKeyboardButton("👥 ተጠቃሚዎች ዝርዝር", callback_data="list_users"),
@@ -88,16 +90,18 @@ def get_main_menu(user_id: int = 0):
             InlineKeyboardButton("🖼️ Sacred Art", callback_data="view_art")
         )
         keyboard.add(
-            InlineKeyboardButton("✍️ For Any Questions", callback_data="feedback_prompt"),
+            InlineKeyboardButton("💬 For Any Questions", callback_data="feedback_prompt"),
             InlineKeyboardButton("✍️ Feedback", callback_data="feedback_prompt")
+        )
+        keyboard.add(
+            InlineKeyboardButton("👥 Group Feedback", callback_data="group_feedback")
         )
         keyboard.add(
             InlineKeyboardButton("⚙️ Language", callback_data="settings_lang")
         )
         if is_admin:
             keyboard.add(
-                InlineKeyboardButton("➕ Add User", callback_data="add_user"),
-                InlineKeyboardButton("➖ Remove User", callback_data="remove_user")
+                InlineKeyboardButton("➕ Add User", callback_data="add_user")
             )
             keyboard.add(
                 InlineKeyboardButton("👥 Users List", callback_data="list_users"),
@@ -112,7 +116,9 @@ def send_welcome(message):
     user_id = message.from_user.id
     user_name = message.from_user.first_name or "ወዳጄ"
     
-    active_users[user_id] = user_name
+    if user_id not in active_users:
+        active_users[user_id] = user_name
+    
     user_interaction_counts[user_id] = user_interaction_counts.get(user_id, 0) + 1
     
     lang = user_languages.get(user_id, "am")
@@ -168,6 +174,11 @@ def handle_back_to_main(call):
     text = f"ሰላም ውድ {call.from_user.first_name or 'ወዳጄ'}! እንኳን ወደ sedoo የፍቅር ቤተሰቦች ቦት በሰላም መጡ! 🙏✨\n\nከታች ካሉት ማራኪ አማራጮች የሚፈልጉትን ይምረጡ፦" if lang == "am" else f"Hello dear {call.from_user.first_name or 'dear'}! Welcome to sedoo's Family Bot! 🙏✨\n\nPlease choose an option:"
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text, reply_markup=get_main_menu(user_id))
 
+# ----------------- ለግሩፕ አስተያየት መስጫ -----------------
+@bot.callback_query_handler(func=lambda call: call.data == 'group_feedback')
+def handle_group_feedback(call):
+    bot.answer_callback_query(call.id, "አስተያየትዎ ስለተሰጠን እናመሰግናለን! 🙏", show_alert=True)
+
 # ----------------- ጥያቄና አስተያየት መቀበያ (Feedback Handler) -----------------
 @bot.callback_query_handler(func=lambda call: call.data == 'feedback_prompt')
 def feedback_prompt_handler(call):
@@ -176,7 +187,7 @@ def feedback_prompt_handler(call):
     bot.answer_callback_query(call.id, "✍️ ጥያቄዎትን ወይም አስተያየትዎን ይጻፉ")
     
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("⬅️ ወደ ዋናው ምናሌ ተመለስ", callback_data="back_to_main"))
+    markup.add(InlineKeyboardButton("⬅️ ወደ ዋና ገጽ ተመለስ", callback_data="back_to_main"))
     
     bot.edit_message_text(
         chat_id=call.message.chat.id,
@@ -187,7 +198,7 @@ def feedback_prompt_handler(call):
     )
 
 # ----------------- የአድሚን ተጠቃሚ አስተዳደር፣ ስታቲስቲክስ (1 እስከ 10) እና ማስታወቂያ -----------------
-@bot.callback_query_handler(func=lambda call: call.data in ['add_user', 'remove_user', 'list_users', 'user_stats', 'broadcast_menu'])
+@bot.callback_query_handler(func=lambda call: call.data in ['add_user', 'list_users', 'user_stats', 'broadcast_menu'])
 def handle_user_management_buttons(call):
     if call.from_user.id != ADMIN_ID:
         bot.answer_callback_query(call.id, "⚠️ ይህ መብት ያለው ለአድሚን ብቻ ነው!")
@@ -197,11 +208,6 @@ def handle_user_management_buttons(call):
         admin_states[ADMIN_ID] = 'waiting_to_add'
         bot.answer_callback_query(call.id, "➕ ተጠቃሚ የመጨመሪያ ተግባር")
         bot.send_message(call.message.chat.id, "✍️ ለመጨመር የፈለጉትን የተጠቃሚ 🆔 (ID) ብቻውን ይላኩላቸው:")
-        
-    elif call.data == 'remove_user':
-        admin_states[ADMIN_ID] = 'waiting_to_remove'
-        bot.answer_callback_query(call.id, "➖ ተጠቃሚ የማስወገጃ ተግባር")
-        bot.send_message(call.message.chat.id, "✍️ ለማስወገድ የፈለጉትን የተጠቃሚ 🆔 (ID) ብቻውን ይላኩላቸው:")
         
     elif call.data == 'list_users':
         bot.answer_callback_query(call.id, "👥 የተጠቃሚዎች ዝርዝር እየተዘጋጀ ነው...")
@@ -232,11 +238,10 @@ def handle_user_management_buttons(call):
             bot.send_message(call.message.chat.id, "⚠️ እስካሁን የተመዘገበ የቦት አጠቃቀም መረጃ (Activity) የለም።")
             return
             
-        # ከፍተኛ ተጠቃሚዎችን በከፍተኛ አጠቃቀም ደርድር
         sorted_users = sorted(user_interaction_counts.items(), key=lambda x: x[1], reverse=True)
         top_10_users = sorted_users[:10]  # እስከ 10 ሰዎችን ብቻ ይውሰድ
         
-        stats_text = "📊 ቦቱን በንቃት የሚጠቀሙ ከፍተኛ 10 ተጠቃሚዎች ደረጃ (Top 10)\n\n"
+        stats_text = "📊 ቦቱን በንቃት የሚጠቀሙ ከፍተኛ ተጠቃሚዎች ደረጃ (Top 10)\n\n"
         stats_text += f"📌 አጠቃላይ መስተጋብሮች (Total Hits): {total_interactions}\n\n"
         
         rank = 1
@@ -244,7 +249,6 @@ def handle_user_management_buttons(call):
             name = active_users.get(uid, "ያልታወቀ ተጠቃሚ")
             percentage = (count / total_interactions) * 100
             
-            # ከ 1 እስከ 5 ያሉትን እና ሌሎች ደረጃዎችን በውበት ለመግለጽ
             if rank == 1:
                 medal = "🥇 1ኛ"
             elif rank == 2:
@@ -305,18 +309,6 @@ def process_admin_inputs(message):
         active_users[target_id] = "በአድሚን የተጨመረ"
         user_interaction_counts[target_id] = user_interaction_counts.get(target_id, 0)
         bot.reply_to(message, f"✅ ተጠቃሚ (ID: {target_id}) በተሳካ ሁኔታ ተጨመረ!")
-        admin_states[ADMIN_ID] = None
-        return
-        
-    elif state == 'waiting_to_remove' and message.text and message.text.isdigit():
-        target_id = int(message.text)
-        if target_id in active_users:
-            del active_users[target_id]
-            if target_id in user_interaction_counts:
-                del user_interaction_counts[target_id]
-            bot.reply_to(message, f"🗑️ ተጠቃሚ (ID: {target_id}) ከዝርዝሩ ውጪ ሆኗል!")
-        else:
-            bot.reply_to(message, f"⚠️ ተጠቃሚ (ID: {target_id}) በዝርዝር ውስጥ አልተገኘምም።")
         admin_states[ADMIN_ID] = None
         return
         
@@ -420,7 +412,7 @@ def user_view_category(call):
         for key, hymn in hymns_data.items():
             markup.add(InlineKeyboardButton(f"🎧 {hymn['title']}", callback_data=f"play_{key}"))
         
-        markup.add(InlineKeyboardButton("⬅️ ወደ ዋናው ምናሌ ተመለስ", callback_data="back_to_main"))
+        markup.add(InlineKeyboardButton("⬅️ ወደ ዋና ገጽ ተመለስ", callback_data="back_to_main"))
         
         bot.edit_message_text(
             chat_id=call.message.chat.id,
@@ -433,10 +425,11 @@ def user_view_category(call):
 
     items = stored_files.get(category, [])
     
+    back_markup = InlineKeyboardMarkup()
+    back_markup.add(InlineKeyboardButton("⬅️ ወደ ዋና ገጽ ተመለስ", callback_data="back_to_main"))
+
     if not items:
         bot.answer_callback_query(call.id, "⚠️ በዚህ ምድብ ስር እስካሁን የተለቀቀ ፋይል የለም።")
-        back_markup = InlineKeyboardMarkup()
-        back_markup.add(InlineKeyboardButton("⬅️ ወደ ዋናው ምናሌ ተመለስ", callback_data="back_to_main"))
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
@@ -446,9 +439,6 @@ def user_view_category(call):
         return
     
     bot.answer_callback_query(call.id, f"📂 የ{category} ዝርዝር እየተላከ ነው...")
-    
-    back_markup = InlineKeyboardMarkup()
-    back_markup.add(InlineKeyboardButton("⬅️ ወደ ዋናው ምናሌ ተመለስ", callback_data="back_to_main"))
     
     bot.edit_message_text(
         chat_id=call.message.chat.id,
@@ -519,7 +509,7 @@ def show_lyrics(call):
     
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("🎧 ወደ መዝሙር ዝርዝር ተመለስ", callback_data="view_audio"))
-    markup.add(InlineKeyboardButton("⬅️ ወደ ዋናው ምናሌ ላይ ተመለስ", callback_data="back_to_main"))
+    markup.add(InlineKeyboardButton("⬅️ ወደ ዋና ገጽ ተመለስ", callback_data="back_to_main"))
 
     bot.send_message(
         chat_id=call.message.chat.id,
