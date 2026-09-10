@@ -1,8 +1,9 @@
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-
-TOKEN = '8893936599:AAEjIqkOGYpTt5CPuHrQ_4CwnFUSzgFawbY'
+8893936599:AAEjIqkOGYpTt5CPuHrQ_4CwnFUSzgFawbY
+TOKEN = '
 ADMIN_ID = 8609938129  # የአድሚን ቴሌግራም User ID
+ADMIN_USERNAME = 'Power_werked' # እዚህጋ ዩዘርናምዎ ተስተካክሏል
 CHANNEL_ID = -1003794082614  # የቻናልህ ትክክለኛ ቁጥር ID
 
 bot = telebot.TeleBot(TOKEN)
@@ -57,9 +58,10 @@ def get_main_menu(user_id: int = 0):
         keyboard.add(
             InlineKeyboardButton("🖼️ ስዕለ ዓድኖ", callback_data="view_art")
         )
+        # ለማንኛውም ጥያቄ በቀጥታ ወደ እርስዎ ፕራይቬት አካውንት በሊንክ እንዲወስድ ተደርጓል
         keyboard.add(
-            InlineKeyboardButton("💬 ለማንኛውም ጥያቄ", callback_data="feedback_prompt"),
-            InlineKeyboardButton("✍️ ጥያቄና አስተያየት", callback_data="feedback_prompt")
+            InlineKeyboardButton("💬 ለማንኛውም ጥያቄ", url=f"https://t.me/{ADMIN_USERNAME}"),
+            InlineKeyboardButton("✍️ አስተያየት", callback_data="feedback_prompt")
         )
         keyboard.add(
             InlineKeyboardButton("👥 ለግሩፕ አስተያየት መስጠት", callback_data="group_feedback")
@@ -89,7 +91,7 @@ def get_main_menu(user_id: int = 0):
             InlineKeyboardButton("🖼️ Sacred Art", callback_data="view_art")
         )
         keyboard.add(
-            InlineKeyboardButton("💬 For Any Questions", callback_data="feedback_prompt"),
+            InlineKeyboardButton("💬 For Any Questions", url=f"https://t.me/{ADMIN_USERNAME}"),
             InlineKeyboardButton("✍️ Feedback", callback_data="feedback_prompt")
         )
         keyboard.add(
@@ -178,12 +180,12 @@ def handle_back_to_main(call):
 def handle_group_feedback(call):
     bot.answer_callback_query(call.id, "አስተያየትዎ ስለተሰጠን እናመሰግናለን! 🙏", show_alert=True)
 
-# ----------------- ጥያቄና አስተያየት መቀበያ (Feedback Handler) -----------------
+# ----------------- አስተያየት መቀበያ (Feedback Handler) -----------------
 @bot.callback_query_handler(func=lambda call: call.data == 'feedback_prompt')
 def feedback_prompt_handler(call):
     user_id = call.from_user.id
     admin_states[user_id] = 'waiting_for_feedback'
-    bot.answer_callback_query(call.id, "✍️ ጥያቄዎትን ወይም አስተያየትዎን ይጻፉ")
+    bot.answer_callback_query(call.id, "✍️ አስተያየትዎን ይጻፉ")
     
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("⬅️ ወደ ዋና ገጽ ተመለስ", callback_data="back_to_main"))
@@ -191,7 +193,7 @@ def feedback_prompt_handler(call):
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text="✍️ **እባክዎ የሚፈልጉትን ጥያቄ ወይም አስተያየት ከታች በቀጥታ ይጻፉልን (ጽሁፍ፣ ፎቶ ወይም ድምፅ ልከው መላክ ይችላሉ):**",
+        text="✍️ **እባክዎ የሚፈልጉትን አስተያየት ከታች በቀጥታ ይጻፉልን (ጽሁፍ፣ ፎቶ ወይም ድምፅ ልከው መላክ ይችላሉ):**",
         reply_markup=markup,
         parse_mode="Markdown"
     )
@@ -212,7 +214,7 @@ def handle_user_management_buttons(call):
         bot.answer_callback_query(call.id, "👥 የተጠቃሚዎች ዝርዝር እየተዘጋጀ ነው...")
         total_count = len(active_users)
         if total_count == 0:
-            bot.send_message(call.message.chat.id, "⚠️ እስካሁን የተመዘገበ ተጠቃሚ  የለም።")
+            bot.send_message(call.message.chat.id, "⚠️ እስካሁን የተመዘገበ ተጠቃሚ የለም።")
             return
         
         users_keyboard = InlineKeyboardMarkup(row_width=1)
@@ -329,18 +331,19 @@ def process_admin_inputs(message):
         admin_states[ADMIN_ID] = None
         return
 
-# ----------------- ተራ ተጠቃሚዎች የሚልኩት ጥያቄ/አስተያየት ወደ አድሚን የማስተላለፊያ ክፍል -----------------
+# ----------------- ተራ ተጠቃሚዎች የሚልኩት አስተያየት ወደ አድሚን የማስተላለፊያ ክፍል -----------------
 @bot.message_handler(func=lambda message: admin_states.get(message.from_user.id) == 'waiting_for_feedback', content_types=['text', 'photo', 'video', 'document', 'audio', 'voice'])
 def receive_user_feedback(message):
     user_id = message.from_user.id
     user_name = message.from_user.first_name or "ስም አልባ"
     
-    bot.reply_to(message, "✅ ጥያቄዎ ወይም አስተያየትዎ ለአድሚን ተልኳል! እናመሰግናለን። 🙏")
+    # ተጠቃሚው የላከውን አስተያየት ሲቀበሉ የሚሰጥ ትክክለኛ ምላሽ
+    bot.reply_to(message, "አስተያየትዎ ስለሰጡን ከልብ እናመሰግናለን! 🙏")
     
     try:
         bot.send_message(
             ADMIN_ID,
-            f"📩 **አዲስ ጥያቄ ወይም አስተያየት ደርሷል!**\n\n• ከተጠቃሚ: {user_name}\n• ID: `{user_id}`",
+            f"📩 **አዲስ አስተያየት ደርሷል!**\n\n• ከተጠቃሚ: {user_name}\n• ID: `{user_id}`",
             parse_mode="Markdown"
         )
         bot.copy_message(chat_id=ADMIN_ID, from_chat_id=message.chat.id, message_id=message.message_id)
