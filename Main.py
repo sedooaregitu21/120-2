@@ -68,7 +68,6 @@ def get_main_menu(user_id: int = 0):
             InlineKeyboardButton("⚙️ ቋንቋ", callback_data="settings_lang")
         )
         if is_admin:
-            # "ተጠቃሚ አስወግድ" የሚለው ቁልፍ ሙሉ በሙሉ ጠፍቷል
             keyboard.add(
                 InlineKeyboardButton("➕ ተጠቃሚ ጨምር", callback_data="add_user")
             )
@@ -192,7 +191,7 @@ def feedback_prompt_handler(call):
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text="✍️ እባክዎ የሚፈልጉትን ጥያቄ ወይም አስተያየት ከታች በቀጥታ ይጻፉልን (ጽሁፍ፣ ፎቶ ወይም ድምፅ ልከው መላክ ይችላሉ):",
+        text="✍️ **እባክዎ የሚፈልጉትን ጥያቄ ወይም አስተያየት ከታች በቀጥታ ይጻፉልን (ጽሁፍ፣ ፎቶ ወይም ድምፅ ልከው መላክ ይችላሉ):**",
         reply_markup=markup,
         parse_mode="Markdown"
     )
@@ -213,7 +212,7 @@ def handle_user_management_buttons(call):
         bot.answer_callback_query(call.id, "👥 የተጠቃሚዎች ዝርዝር እየተዘጋጀ ነው...")
         total_count = len(active_users)
         if total_count == 0:
-            bot.send_message(call.message.chat.id, "⚠️ እስካሁን የተመዘገበ ተጠቃሚ የለም።")
+            bot.send_message(call.message.chat.id, "⚠️ እስካሁን የተመዘገበ ተጠቃሚ  የለም።")
             return
         
         users_keyboard = InlineKeyboardMarkup(row_width=1)
@@ -224,7 +223,7 @@ def handle_user_management_buttons(call):
         
         bot.send_message(
             call.message.chat.id, 
-            f"👥 አጠቃላይ ተጠቃሚዎች ብዛት: {total_count}\n\n👇 ከዚህ በታች ከሚገኙት ስሞች ውስጥ ማስወገድ የሚፈልጉትን ይጫኑ፦", 
+            f"👥 **አጠቃላይ ተጠቃሚዎች ብዛት:** {total_count}\n\n👇 ከዚህ በታች ከሚገኙት ስሞች ውስጥ ማስወገድ የሚፈልጉትን ይጫኑ፦", 
             reply_markup=users_keyboard, 
             parse_mode="Markdown"
         )
@@ -239,10 +238,10 @@ def handle_user_management_buttons(call):
             return
             
         sorted_users = sorted(user_interaction_counts.items(), key=lambda x: x[1], reverse=True)
-        top_10_users = sorted_users[:10]  # እስከ 10 ሰዎችን ብቻ ይውሰድ
+        top_10_users = sorted_users[:10]
         
-        stats_text = "📊 ቦቱን በንቃት የሚጠቀሙ ከፍተኛ ተጠቃሚዎች ደረጃ (Top 10)\n\n"
-        stats_text += f"📌 አጠቃላይ መስተጋብሮች (Total Hits): {total_interactions}\n\n"
+        stats_text = "📊 **ቦቱን በንቃት የሚጠቀሙ ከፍተኛ ተጠቃሚዎች ደረጃ (Top 10)**\n\n"
+        stats_text += f"📌 **አጠቃላይ መስተጋብሮች (Total Hits):** {total_interactions}\n\n"
         
         rank = 1
         for uid, count in top_10_users:
@@ -262,7 +261,7 @@ def handle_user_management_buttons(call):
             else:
                 medal = f"▫️ {rank}ኛ"
                 
-            stats_text += f"ውድ {name}፣ በዚህ መንፈሳዊ ቦት {medal} ደረጃ ላይ ይገኛሉ! 👏\n   └ (ID: {uid}) | አጠቃቀም: {count} ጊዜ ({percentage:.1f}%)\n\n"
+            stats_text += f"ውድ **{name}**፣ በዚህ መንፈሳዊ ቦት **{medal}** ደረጃ ላይ ይገኛሉ! 👏\n   └ (ID: `{uid}`) | አጠቃቀም: **{count} ጊዜ** ({percentage:.1f}%)\n\n"
             rank += 1
             
         bot.send_message(call.message.chat.id, stats_text, parse_mode="Markdown")
@@ -272,7 +271,7 @@ def handle_user_management_buttons(call):
         bot.answer_callback_query(call.id, "📢 ማስታወቂያ መላኪያ")
         bot.send_message(
             call.message.chat.id, 
-            "📢 ለተጠቃሚዎች በሙሉ የሚተላለፍ ማስታወቂያ (ጽሑፍ፣ ፎቶ ወይም ቪዲዮ) አሁን ይላኩላቸው:"
+            "📢 **ለተጠቃሚዎች በሙሉ የሚተላለፍ ማስታወቂያ (ጽሑፍ፣ ፎቶ ወይም ቪዲዮ) አሁን ይላኩላቸው:**"
         )
 
 # አድሚኑ ከዝርዝሩ ውስጥ በአንድ ክሊክ ተጠቃሚን ሲያጠፋ
@@ -293,7 +292,7 @@ def handle_inline_delete_user(call):
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f"🗑️ ተጠቃሚው ተወግዷል!\n• ስም: {removed_name}\n• ID: {target_id}",
+            text=f"🗑️ **ተጠቃሚው ተወግዷል!**\n• ስም: {removed_name}\n• ID: `{target_id}`",
             parse_mode="Markdown"
         )
     else:
@@ -326,7 +325,7 @@ def process_admin_inputs(message):
                 print(f"ለ {uid} መላክ አልቻለም: {e}")
                 fail += 1
                 
-        bot.send_message(ADMIN_ID, f"✅ ማስታወቂያው በተሳካ ሁኔታ ተጠናቋል!\n\n• የደረሰላቸው: {success}\n• ያልደረሰባቸው: {fail}")
+        bot.send_message(ADMIN_ID, f"✅ **ማስታወቂያው በተሳካ ሁኔታ ተጠናቋል!**\n\n• የደረሰላቸው: {success}\n• ያልደረሰባቸው: {fail}")
         admin_states[ADMIN_ID] = None
         return
 
@@ -341,7 +340,7 @@ def receive_user_feedback(message):
     try:
         bot.send_message(
             ADMIN_ID,
-            f"📩 አዲስ ጥያቄ ወይም አስተያየት ደርሷል!\n\n• ከተጠቃሚ: {user_name}\n• ID: {user_id}",
+            f"📩 **አዲስ ጥያቄ ወይም አስተያየት ደርሷል!**\n\n• ከተጠቃሚ: {user_name}\n• ID: `{user_id}`",
             parse_mode="Markdown"
         )
         bot.copy_message(chat_id=ADMIN_ID, from_chat_id=message.chat.id, message_id=message.message_id)
@@ -370,7 +369,7 @@ def handle_channel_post(message):
         try:
             bot.send_message(
                 ADMIN_ID,
-                "🔔 አዲስ ፖስት/ፎቶ ቻናል ላይ ተለቀቀ!\n\n❓ ይህንን ፋይል የየትኛው ምድብ ላይ ማከማቸት ይፈልጋሉ?",
+                "🔔 **አዲስ ፖስት/ፎቶ ቻናል ላይ ተለቀቀ!**\n\n❓ ይህንን ፋይል የየትኛው ምድብ ላይ ማከማቸት ይፈልጋሉ?",
                 reply_markup=keyboard
             )
         except Exception as e:
@@ -392,7 +391,7 @@ def save_channel_file(call):
     })
     
     bot.answer_callback_query(call.id, "✅ ፋይሉ በትክክል ተከማችቷል!")
-    success_msg = f"✅ የቻናሉ ፖስት በተሳካ ሁኔታ በ {category} ምድብ ስር ተቀምጧል! 🚀"
+    success_msg = f"✅ የቻናሉ ፖስት በተሳካ ሁኔታ በ **{category}** ምድብ ስር ተቀምጧል! 🚀"
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
@@ -417,7 +416,7 @@ def user_view_category(call):
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text="🎧 እባክዎ ማዳመጥ የሚፈልጉትን መዝሙር ይምረጡ፦",
+            text="🎧 **እባክዎ ማዳመጥ የሚፈልጉትን መዝሙር ይምረጡ፦**",
             reply_markup=markup,
             parse_mode="Markdown"
         )
@@ -443,7 +442,7 @@ def user_view_category(call):
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f"📂 የተመረጠው ምድብ ({category}) ፋይሎች፦",
+        text=f"📂 **የተመረጠው ምድብ ({category}) ፋይሎች፦**",
         reply_markup=back_markup,
         parse_mode="Markdown"
     )
@@ -488,7 +487,7 @@ def play_selected_hymn(call):
 
     bot.send_message(
         chat_id=call.message.chat.id,
-        text=f"🎵 {hymn['title']}\n\nማጀቢያ ግጥም ማየት ከፈለጉ ከታች ያለውን ቁልፍ ይጫኑ።",
+        text=f"🎵 **{hymn['title']}**\n\nማጀቢያ ግጥም ማየት ከፈለጉ ከታች ያለውን ቁልፍ ይጫኑ።",
         reply_markup=markup,
         parse_mode="Markdown"
     )
@@ -513,11 +512,11 @@ def show_lyrics(call):
 
     bot.send_message(
         chat_id=call.message.chat.id,
-        text=f"📜 የ{hymn['title']} ግጥም፦\n\n{hymn['lyrics']}",
+        text=f"📜 **የ{hymn['title']} ግጥም፦**\n\n{hymn['lyrics']}",
         reply_markup=markup,
         parse_mode="Markdown"
     )
 
-if name == "main":
+if __name__ == "__main__":
     print("ቦቱ በመጀመር ላይ ነው...")
     bot.infinity_polling()
