@@ -3,7 +3,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 TOKEN = '8893936599:AAEjIqkOGYpTt5CPuHrQ_4CwnFUSzgFawbY'
 ADMIN_ID = 8609938129  # የአድሚን ቴሌግራም User ID
-ADMIN_USERNAME = 'Power_werked' # እዚህጋ ዩዘርናምዎ ተስተካክሏል
+ADMIN_USERNAME = 'Power_werked' 
 CHANNEL_ID = -1003794082614  # የቻናልህ ትክክለኛ ቁጥር ID
 
 bot = telebot.TeleBot(TOKEN)
@@ -11,27 +11,10 @@ bot = telebot.TeleBot(TOKEN)
 user_languages = {}
 admin_states = {}
 
-# የተጠቃሚዎችን መረጃ (User ID እና Name) እንዲሁም ቦቱን ስንት ጊዜ እንደተጠቀሙ ለመያዝ
 active_users = {}
 user_interaction_counts = {}
 
-# የሰፈሩ መዝሙሮች እና ግጥሞቻቸው
-hymns_data = {
-    "hymn_1": {
-        "title": "እግዚአብሔር ይመስገን",
-        "audio_msg_id": 123,
-        "from_chat_id": CHANNEL_ID,
-        "lyrics": "🎵 እግዚአብሔር ይመስገን፣ ስሙ የተባረከ ይሁን...\nሁሉን በሰዓቱ የሚያደርግ አምላክ ክብር ይገባው..."
-    },
-    "hymn_2": {
-        "title": "ሰላም ላንቺ ይሁን",
-        "audio_msg_id": 124,
-        "from_chat_id": CHANNEL_ID,
-        "lyrics": "🎵 ሰላም ላንቺ ይሁን እመ ብርሃን ቅድስት ድንግል...\nየሰማይና የምድር ንግሥት..."
-    }
-}
-
-# የተከማቹ ፋይሎች ዝርዝር
+# የተከማቹ ፋይሎች ዝርዝር (ከቻናል የሚመጡት እዚህ ይከማቻሉ)
 stored_files = {
     "books": [],
     "audio": [],
@@ -40,7 +23,6 @@ stored_files = {
     "art": []
 }
 
-# ----------------- የተጠቃሚዎች እና የአድሚን ምናሌዎች -----------------
 def get_main_menu(user_id: int = 0):
     lang = user_languages.get(user_id, "am")
     keyboard = InlineKeyboardMarkup(row_width=2)
@@ -58,7 +40,6 @@ def get_main_menu(user_id: int = 0):
         keyboard.add(
             InlineKeyboardButton("🖼️ ስዕለ ዓድኖ", callback_data="view_art")
         )
-        # ለማንኛውም ጥያቄ በቀጥታ ወደ እርስዎ ፕራይቬት አካውንት በሊንክ እንዲወስድ ተደርጓል
         keyboard.add(
             InlineKeyboardButton("💬 ለማንኛውም ጥያቄ", url=f"https://t.me/{ADMIN_USERNAME}"),
             InlineKeyboardButton("✍️ አስተያየት", callback_data="feedback_prompt")
@@ -121,23 +102,15 @@ def send_welcome(message):
         active_users[user_id] = user_name
     
     user_interaction_counts[user_id] = user_interaction_counts.get(user_id, 0) + 1
-    
     lang = user_languages.get(user_id, "am")
     
     if lang == "am":
-        welcome_text = (
-            f"ሰላም ውድ {user_name}! እንኳን ወደ sedoo የፍቅር ቤተሰቦች ቦት በሰላም መጡ! 🙏✨\n\n"
-            "ከታች ካሉት ማራኪ አማራጮች የሚፈልጉትን ይምረጡ፦"
-        )
+        welcome_text = f"ሰላም ውድ {user_name}! እንኳን ወደ sedoo የፍቅር ቤተሰቦች ቦት በሰላም መጡ! 🙏✨\n\nከታች ካሉት ማራኪ አማራጮች የሚፈልጉትን ይምረጡ፦"
     else:
-        welcome_text = (
-            f"Hello dear {user_name}! Welcome to sedoo's Family Bot! 🙏✨\n\n"
-            "Please choose an option from below:"
-        )
+        welcome_text = f"Hello dear {user_name}! Welcome to sedoo's Family Bot! 🙏✨\n\nPlease choose an option from below:"
         
     bot.send_message(message.chat.id, welcome_text, reply_markup=get_main_menu(user_id))
 
-# ቋንቋ መቀየሪያ
 @bot.callback_query_handler(func=lambda call: call.data == 'settings_lang')
 def handle_language_settings(call):
     user_id = call.from_user.id
@@ -148,7 +121,6 @@ def handle_language_settings(call):
         InlineKeyboardButton("አማርኛ 🇪🇹", callback_data="lang_am"),
         InlineKeyboardButton("English 🇬🇧", callback_data="lang_en")
     )
-    
     back_text = "⬅️ ተመለስ" if lang == "am" else "⬅️ Back"
     lang_keyboard.add(InlineKeyboardButton(back_text, callback_data="back_to_main"))
     
@@ -175,12 +147,10 @@ def handle_back_to_main(call):
     text = f"ሰላም ውድ {call.from_user.first_name or 'ወዳጄ'}! እንኳን ወደ sedoo የፍቅር ቤተሰቦች ቦት በሰላም መጡ! 🙏✨\n\nከታች ካሉት ማራኪ አማራጮች የሚፈልጉትን ይምረጡ፦" if lang == "am" else f"Hello dear {call.from_user.first_name or 'dear'}! Welcome to sedoo's Family Bot! 🙏✨\n\nPlease choose an option:"
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text, reply_markup=get_main_menu(user_id))
 
-# ----------------- ለግሩፕ አስተያየት መስጫ -----------------
 @bot.callback_query_handler(func=lambda call: call.data == 'group_feedback')
 def handle_group_feedback(call):
     bot.answer_callback_query(call.id, "አስተያየትዎ ስለተሰጠን እናመሰግናለን! 🙏", show_alert=True)
 
-# ----------------- አስተያየት መቀበያ (Feedback Handler) -----------------
 @bot.callback_query_handler(func=lambda call: call.data == 'feedback_prompt')
 def feedback_prompt_handler(call):
     user_id = call.from_user.id
@@ -198,7 +168,6 @@ def feedback_prompt_handler(call):
         parse_mode="Markdown"
     )
 
-# ----------------- የአድሚን ተጠቃሚ አስተዳደር፣ ስታቲስቲክስ (1 እስከ 10) እና ማስታወቂያ -----------------
 @bot.callback_query_handler(func=lambda call: call.data in ['add_user', 'list_users', 'user_stats', 'broadcast_menu'])
 def handle_user_management_buttons(call):
     if call.from_user.id != ADMIN_ID:
@@ -232,7 +201,6 @@ def handle_user_management_buttons(call):
         
     elif call.data == 'user_stats':
         bot.answer_callback_query(call.id, "📊 ከፍተኛ ተጠቃሚዎች (Top 10) በደረጃ እየተሰላ ነው...")
-        
         total_interactions = sum(user_interaction_counts.values())
         
         if total_interactions == 0 or len(active_users) == 0:
@@ -249,21 +217,7 @@ def handle_user_management_buttons(call):
         for uid, count in top_10_users:
             name = active_users.get(uid, "ያልታወቀ ተጠቃሚ")
             percentage = (count / total_interactions) * 100
-            
-            if rank == 1:
-                medal = "🥇 1ኛ"
-            elif rank == 2:
-                medal = "🥈 2ኛ"
-            elif rank == 3:
-                medal = "🥉 3ኛ"
-            elif rank == 4:
-                medal = "🏅 4ኛ"
-            elif rank == 5:
-                medal = "🏅 5ኛ"
-            else:
-                medal = f"▫️ {rank}ኛ"
-                
-            stats_text += f"ውድ **{name}**፣ በዚህ መንፈሳዊ ቦት **{medal}** ደረጃ ላይ ይገኛሉ! 👏\n   └ (ID: `{uid}`) | አጠቃቀም: **{count} ጊዜ** ({percentage:.1f}%)\n\n"
+            stats_text += f"ውድ **{name}** ({rank}ኛ) ፦ **{count} ጊዜ** ({percentage:.1f}%)\n"
             rank += 1
             
         bot.send_message(call.message.chat.id, stats_text, parse_mode="Markdown")
@@ -273,83 +227,61 @@ def handle_user_management_buttons(call):
         bot.answer_callback_query(call.id, "📢 ማስታወቂያ መላኪያ")
         bot.send_message(
             call.message.chat.id, 
-            "📢 **ለተጠቃሚዎች በሙሉ የሚተላለፍ ማስታወቂያ (ጽሑፍ፣ ፎቶ ወይም ቪዲዮ) አሁን ይላኩላቸው:**"
+            "📢 **ለተጠቃሚዎች በሙሉ የሚተላለፍ ማስታወቂያ አሁን ይላኩላቸው:**"
         )
 
-# አድሚኑ ከዝርዝሩ ውስጥ በአንድ ክሊክ ተጠቃሚን ሲያጠፋ
 @bot.callback_query_handler(func=lambda call: call.data.startswith('del_user_'))
 def handle_inline_delete_user(call):
     if call.from_user.id != ADMIN_ID:
-        bot.answer_callback_query(call.id, "⚠️ መብት አለዎት!")
         return
-    
     target_id = int(call.data.split('_')[2])
-    
     if target_id in active_users:
         removed_name = active_users.pop(target_id)
         if target_id in user_interaction_counts:
             del user_interaction_counts[target_id]
-            
-        bot.answer_callback_query(call.id, f"✅ {removed_name} ከዝርዝር ውጪ ሆኗል!")
+        bot.answer_callback_query(call.id, f"✅ ተወግዷል!")
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f"🗑️ **ተጠቃሚው ተወግዷል!**\n• ስም: {removed_name}\n• ID: `{target_id}`",
+            text=f"🗑️ **ተጠቃሚው ተወግዷል!** ID: `{target_id}`",
             parse_mode="Markdown"
         )
-    else:
-        bot.answer_callback_query(call.id, "⚠️ ተጠቃሚው በዝርዝር ውስጥ አልተገኘም!")
 
-# የአድሚን ግብዓቶች ማቀናበሪያ
 @bot.message_handler(func=lambda message: message.from_user.id == ADMIN_ID, content_types=['text', 'photo', 'video', 'document', 'audio', 'voice'])
 def process_admin_inputs(message):
     state = admin_states.get(ADMIN_ID)
-    
     if state == 'waiting_to_add' and message.text and message.text.isdigit():
         target_id = int(message.text)
         active_users[target_id] = "በአድሚን የተጨመረ"
-        user_interaction_counts[target_id] = user_interaction_counts.get(target_id, 0)
+        user_interaction_counts[target_id] = 0
         bot.reply_to(message, f"✅ ተጠቃሚ (ID: {target_id}) በተሳካ ሁኔታ ተጨመረ!")
         admin_states[ADMIN_ID] = None
         return
-        
     elif state == 'waiting_for_broadcast':
         success, fail = 0, 0
-        bot.reply_to(message, "⏳ ማስታወቂያው ለተጠቃሚዎች በመላክ ላይ ነው፣ እባክዎ ትንሽ ይጠብቁ...")
-        
+        bot.reply_to(message, "⏳ ማስታወቂያው በመላክ ላይ ነው...")
         for uid in active_users.keys():
             if uid == ADMIN_ID:
                 continue
             try:
                 bot.copy_message(chat_id=uid, from_chat_id=message.chat.id, message_id=message.message_id)
                 success += 1
-            except Exception as e:
-                print(f"ለ {uid} መላክ አልቻለም: {e}")
+            except Exception:
                 fail += 1
-                
-        bot.send_message(ADMIN_ID, f"✅ **ማስታወቂያው በተሳካ ሁኔታ ተጠናቋል!**\n\n• የደረሰላቸው: {success}\n• ያልደረሰባቸው: {fail}")
+        bot.send_message(ADMIN_ID, f"✅ **ተጠናቋል!**\nደረሰላቸው: {success}\nያልደረሰባቸው: {fail}")
         admin_states[ADMIN_ID] = None
         return
 
-# ----------------- ተራ ተጠቃሚዎች የሚልኩት አስተያየት ወደ አድሚን የማስተላለፊያ ክፍል -----------------
 @bot.message_handler(func=lambda message: admin_states.get(message.from_user.id) == 'waiting_for_feedback', content_types=['text', 'photo', 'video', 'document', 'audio', 'voice'])
 def receive_user_feedback(message):
     user_id = message.from_user.id
     user_name = message.from_user.first_name or "ስም አልባ"
-    
-    # ተጠቃሚው የላከውን አስተያየት ሲቀበሉ የሚሰጥ ትክክለኛ ምላሽ
     bot.reply_to(message, "አስተያየትዎ ስለሰጡን ከልብ እናመሰግናለን! 🙏")
-    
     try:
-        bot.send_message(
-            ADMIN_ID,
-            f"📩 **አዲስ አስተያየት ደርሷል!**\n\n• ከተጠቃሚ: {user_name}\n• ID: `{user_id}`",
-            parse_mode="Markdown"
-        )
+        bot.send_message(ADMIN_ID, f"📩 **አዲስ አስተያየት ደርሷል!**\n• ከተጠቃሚ: {user_name}\n• ID: `{user_id}`", parse_mode="Markdown")
         bot.copy_message(chat_id=ADMIN_ID, from_chat_id=message.chat.id, message_id=message.message_id)
     except Exception as e:
-        print(f"አስተያየት ለአድሚን መላክ አልቻለም: {e}")
-        
+        print(e)
     admin_states[user_id] = None
 
 # ----------------- ቻናል ላይ ፖስት ሲደረግ -----------------
@@ -368,15 +300,14 @@ def handle_channel_post(message):
         keyboard.add(
             InlineKeyboardButton("🖼️ ስዕለ ዓድኖ ላይ ጨምር", callback_data=f"ch_save_art_{message.message_id}")
         )
-        
         try:
             bot.send_message(
                 ADMIN_ID,
-                "🔔 **አዲስ ፖስት/ፎቶ ቻናል ላይ ተለቀቀ!**\n\n❓ ይህንን ፋይል የየትኛው ምድብ ላይ ማከማቸት ይፈልጋሉ?",
+                "🔔 **አዲስ ፖስት ቻናል ላይ ተለቀቀ!**\n\n❓ ይህንን ፋይል የየትኛው ምድብ ላይ ማከማቸት ይፈልጋሉ?",
                 reply_markup=keyboard
             )
         except Exception as e:
-            print(f"ማሳወቂያ መላክ አልተቻለም: {e}")
+            print(e)
 
 @bot.edited_channel_post_handler(content_types=['document', 'audio', 'video', 'photo', 'text', 'voice'])
 def handle_edited_channel_post(message):
@@ -388,17 +319,19 @@ def save_channel_file(call):
     category = data_parts[2]
     msg_id = int(data_parts[3])
     
-    stored_files[category].append({
-        "from_chat_id": CHANNEL_ID,
-        "message_id": msg_id
-    })
+    # ድግግሞሽ እንዳይኖር ማረጋገጥ
+    exists = any(item['message_id'] == msg_id for item in stored_files[category])
+    if not exists:
+        stored_files[category].append({
+            "from_chat_id": CHANNEL_ID,
+            "message_id": msg_id
+        })
     
     bot.answer_callback_query(call.id, "✅ ፋይሉ በትክክል ተከማችቷል!")
-    success_msg = f"✅ የቻናሉ ፖስት በተሳካ ሁኔታ በ **{category}** ምድብ ስር ተቀምጧል! 🚀"
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=success_msg
+        text=f"✅ የቻናሉ ፖስት በተሳካ ሁኔታ በ **{category}** ምድብ ስር ተቀምጧል! 🚀"
     )
 
 # ----------------- ተጠቃሚዎች ምድብ/ፋይል ሲፈልጉ -----------------
@@ -408,23 +341,6 @@ def user_view_category(call):
     user_interaction_counts[user_id] = user_interaction_counts.get(user_id, 0) + 1
     
     category = call.data.split('_')[1]
-    
-    if category == "audio":
-        markup = InlineKeyboardMarkup()
-        for key, hymn in hymns_data.items():
-            markup.add(InlineKeyboardButton(f"🎧 {hymn['title']}", callback_data=f"play_{key}"))
-        
-        markup.add(InlineKeyboardButton("⬅️ ወደ ዋና ገጽ ተመለስ", callback_data="back_to_main"))
-        
-        bot.edit_message_text(
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text="🎧 **እባክዎ ማዳመጥ የሚፈልጉትን መዝሙር ይምረጡ፦**",
-            reply_markup=markup,
-            parse_mode="Markdown"
-        )
-        return
-
     items = stored_files.get(category, [])
     
     back_markup = InlineKeyboardMarkup()
@@ -441,7 +357,6 @@ def user_view_category(call):
         return
     
     bot.answer_callback_query(call.id, f"📂 የ{category} ዝርዝር እየተላከ ነው...")
-    
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
@@ -458,67 +373,7 @@ def user_view_category(call):
                 message_id=item["message_id"]
             )
         except Exception as e:
-            print(f"ፋይል መላክ አልቻለም: {e}")
-
-# ----------------- መዝሙር መምረጫ እና ግጥም ማሳያ -----------------
-@bot.callback_query_handler(func=lambda call: call.data.startswith('play_'))
-def play_selected_hymn(call):
-    user_id = call.from_user.id
-    user_interaction_counts[user_id] = user_interaction_counts.get(user_id, 0) + 1
-    
-    hymn_key = call.data.split('_', 1)[1]
-    hymn = hymns_data.get(hymn_key)
-    
-    if not hymn:
-        bot.answer_callback_query(call.id, "⚠️ መዝሙሩ አልተገኘም!")
-        return
-
-    bot.answer_callback_query(call.id, f"🎶 '{hymn['title']}' እየተጫነ ነው...")
-    
-    try:
-        bot.copy_message(
-            chat_id=call.message.chat.id,
-            from_chat_id=hymn["from_chat_id"],
-            message_id=hymn["audio_msg_id"]
-        )
-    except Exception as e:
-        print(f"ኦዲዮ መላክ አልቻለም: {e}")
-
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("📜 ግጥሙን (Lyrics) አሳይ", callback_data=f"lyrics_{hymn_key}"))
-    markup.add(InlineKeyboardButton("🎧 ወደ መዝሙር ዝርዝር ተመለስ", callback_data="view_audio"))
-
-    bot.send_message(
-        chat_id=call.message.chat.id,
-        text=f"🎵 **{hymn['title']}**\n\nማጀቢያ ግጥም ማየት ከፈለጉ ከታች ያለውን ቁልፍ ይጫኑ።",
-        reply_markup=markup,
-        parse_mode="Markdown"
-    )
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith('lyrics_'))
-def show_lyrics(call):
-    user_id = call.from_user.id
-    user_interaction_counts[user_id] = user_interaction_counts.get(user_id, 0) + 1
-    
-    hymn_key = call.data.split('_', 1)[1]
-    hymn = hymns_data.get(hymn_key)
-    
-    if not hymn:
-        bot.answer_callback_query(call.id, "⚠️ ግጥሙ አልተገኘም!")
-        return
-
-    bot.answer_callback_query(call.id, "📜 ግጥሙ ተጭኗል")
-    
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("🎧 ወደ መዝሙር ዝርዝር ተመለስ", callback_data="view_audio"))
-    markup.add(InlineKeyboardButton("⬅️ ወደ ዋና ገጽ ተመለስ", callback_data="back_to_main"))
-
-    bot.send_message(
-        chat_id=call.message.chat.id,
-        text=f"📜 **የ{hymn['title']} ግጥም፦**\n\n{hymn['lyrics']}",
-        reply_markup=markup,
-        parse_mode="Markdown"
-    )
+            print(e)
 
 if __name__ == "__main__":
     print("ቦቱ በመጀመር ላይ ነው...")
